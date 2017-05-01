@@ -2,33 +2,39 @@
 #
 define lvm::logical_volume (
   $volume_group,
-  $size                             = undef,
-  $initial_size                     = undef,
-  Enum['absent', 'present'] $ensure = present,
-  $options                          = 'defaults',
-  $pass                             = '2',
-  $dump                             = '0',
-  $fs_type                          = 'ext4',
-  $mkfs_options                     = undef,
-  Stdlib::Absolutepath $mountpath   = "/${name}",
-  Boolean $mountpath_require        = false,
-  Boolean $mounted                  = true,
-  Boolean $createfs                 = true,
-  $extents                          = undef,
-  $stripes                          = undef,
-  $stripesize                       = undef,
-  $readahead                        = undef,
-  $range                            = undef,
-  $size_is_minsize                  = undef,
-  $type                             = undef,
-  $thinpool                         = false,
-  $poolmetadatasize                 = undef,
-  $mirror                           = undef,
-  $mirrorlog                        = undef,
-  $no_sync                          = undef,
-  $region_size                      = undef,
-  $alloc                            = undef,
+  $size              = undef,
+  $initial_size      = undef,
+  $ensure            = present,
+  $options           = 'defaults',
+  $pass              = '2',
+  $dump              = '1',
+  $fs_type           = 'ext4',
+  $mkfs_options      = undef,
+  $mountpath         = "/${name}",
+  $mountpath_require = false,
+  $mounted           = true,
+  $createfs          = true,
+  $extents           = undef,
+  $stripes           = undef,
+  $stripesize        = undef,
+  $readahead         = undef,
+  $range             = undef,
+  $size_is_minsize   = undef,
+  $type              = undef,
+  $thinpool          = undef,
+  $poolmetadatasize  = undef,
+  $mirror            = undef,
+  $mirrorlog         = undef,
+  $no_sync           = undef,
+  $region_size       = undef,
+  $alloc             = undef,
 ) {
+
+  validate_bool($mountpath_require)
+
+  if ($name == undef) {
+    fail("lvm::logical_volume \$name can't be undefined")
+  }
 
   $lvm_device_path = "/dev/${volume_group}/${name}"
 
@@ -123,6 +129,9 @@ define lvm::logical_volume (
         command => "mkdir -p ${fixed_mountpath}",
         unless  => "test -d ${fixed_mountpath}",
         before  => Mount[$mount_title],
+      }
+      file { $fixed_mountpath:
+        ensure => directory
       }
     }
     mount { $mount_title:
